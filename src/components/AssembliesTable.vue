@@ -50,7 +50,9 @@
             </template>
             <template #header(phenotype)="data">
                 <div class="row">
-                    <span class="mr-1" id="header-title">{{ data.label }} </span>
+                    <span class="mr-1" id="header-title" @click="sortCol(data.label)"
+                        >{{ data.label }} <v-icon large>{{ chevrons.phenotype }}</v-icon></span
+                    >
 
                     <va-input placeholder="Filter..." v-model="phenotypeFilter" />
                 </div>
@@ -60,7 +62,9 @@
             </template>
             <template #header(pangenome)="data">
                 <div class="row align-items-center">
-                    <span class="mr-1" id="header-title">{{ data.label }} </span>
+                    <span class="mr-1" id="header-title" @click="sortCol(data.label)"
+                        >{{ data.label }} <v-icon large>{{ chevrons.pangenome }}</v-icon></span
+                    >
                     <va-input placeholder="Filter..." v-model="pangenomeFilter" />
                 </div>
             </template>
@@ -148,12 +152,17 @@
                         return assembly.pangenome.toLowerCase().includes(pangenomeFilter.value.toLowerCase());
                     });
                 }
-                console.log(assembliesToTable);
                 if (sortBy.value !== '' && assembliesToTable.length !== 0) {
                     if (directionLastSorted.value === 'ascd') {
-                        assembliesToTable = assembliesToTable.sort((a, b) => (a[sortBy.value] > b[sortBy.value] ? 1 : b[sortBy.value] > a[sortBy.value] ? -1 : 0));
+                        // assembliesToTable = assembliesToTable.sort((a, b) => (a[sortBy.value] > b[sortBy.value] ? 1 : b[sortBy.value] > a[sortBy.value] ? -1 : 0));
+                        // natsort
+                        assembliesToTable = assembliesToTable.sort((a, b) =>
+                            a[sortBy.value].localeCompare(b[sortBy.value], navigator.languages[0] || navigator.language, { numeric: true, ignorePunctuation: true })
+                        );
                     } else {
-                        assembliesToTable = assembliesToTable.sort((a, b) => (a[sortBy.value] < b[sortBy.value] ? 1 : b[sortBy.value] < a[sortBy.value] ? -1 : 0));
+                        assembliesToTable = assembliesToTable.sort(
+                            (a, b) => a[sortBy.value].localeCompare(b[sortBy.value], navigator.languages[0] || navigator.language, { numeric: true, ignorePunctuation: true }) * -1
+                        );
                     }
                 }
 

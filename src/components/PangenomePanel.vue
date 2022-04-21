@@ -144,7 +144,7 @@
                                 let pangenome = {
                                     id: parseInt(cols[0]),
                                     name: cols[1],
-                                    assemblies: cols[2].split(', '),
+                                    assemblies: cols[2].split(',').replace(/\s/g, ''),
                                     creationDate: cols[3]
                                 };
                                 return pangenome;
