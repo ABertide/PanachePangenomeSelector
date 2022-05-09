@@ -214,35 +214,64 @@
                 }
             };
             const myRowHover = e => {
-                const path = e.path.filter(htmlTag => htmlTag.className === 'va-data-table__table-tr');
-                if (path.length !== 0) {
-                    if (path[0].outerText.startsWith('check')) {
-                        const assemblyNameSelected = path[0].outerText.split('\t')[2];
-                        const assembly = assemblies.value.filter(assembly => assembly.assembly_name === assemblyNameSelected)[0];
-                        // e.overMoused = true;
-                        store.state.chart.chart.instance
-                            .series()
-                            .points(p => p.name === assembly.assembly_name)
-                            .options({ color: assembly.color });
-                    }
+                let outerText = '';
+                if (e.target.__vnode.type === 'td') {
+                    // line table case
+                    outerText = e.target.parentElement.outerText;
+                } else if (e.target.className === 'va-checkbox__input-container') {
+                    // Checkbox case
+
+                    outerText = e.target.parentElement.parentElement.parentElement.outerText;
+                    console.log(outerText);
+                } else if (e.target.className === 'va-checkbox__square') {
+                    // Checkbox case
+
+                    outerText = e.target.parentElement.parentElement.parentElement.parentElement.outerText;
+                } else {
+                    // span into line table case
+                    outerText = e.target.parentElement.parentElement.outerText;
+                }
+                if (outerText.startsWith('check') && outerText !== 'check') {
+                    const assemblyNameSelected = outerText.split('\t')[2];
+                    const assembly = assemblies.value.filter(assembly => assembly.assembly_name === assemblyNameSelected)[0];
+                    // e.overMoused = true;
+                    store.state.chart.chart.instance
+                        .series()
+                        .points(p => p.name === assembly.assembly_name)
+                        .options({ color: assembly.color });
                 }
             };
             const myUnRowHover = e => {
-                const path = e.path.filter(htmlTag => htmlTag.className === 'va-data-table__table-tr');
-                if (path.length !== 0) {
-                    if (path[0].outerText.startsWith('check')) {
-                        const assemblyNameSelected = path[0].outerText.split('\t')[2];
-                        const assembly = assemblies.value.filter(assembly => assembly.assembly_name === assemblyNameSelected)[0];
-                        // e.overMoused = false;
-                        store.state.chart.chart.instance
-                            .series()
-                            .points(p => p.name === assembly.assembly_name && !p.selected)
-                            .options({ color: 'black' });
-                        store.state.chart.chart.instance
-                            .series()
-                            .points(p => p.name === assembly.assembly_name && p.selected)
-                            .options({ color: 'gray' });
-                    }
+                let outerText = '';
+                if (e.target.__vnode.type === 'td') {
+                    // line table case
+                    outerText = e.target.parentElement.outerText;
+                } else if (e.target.className === 'va-checkbox__input-container') {
+                    // Checkbox case
+
+                    outerText = e.target.parentElement.parentElement.parentElement.outerText;
+                    console.log(outerText);
+                } else if (e.target.className === 'va-checkbox__square') {
+                    // Checkbox case
+
+                    outerText = e.target.parentElement.parentElement.parentElement.parentElement.outerText;
+                } else {
+                    // span into line table case
+                    outerText = e.target.parentElement.parentElement.outerText;
+                }
+                if (outerText.startsWith('check') && outerText !== 'check') {
+                    console.log(outerText);
+                    const assemblyNameSelected = outerText.split('\t')[2];
+                    const assembly = assemblies.value.filter(assembly => assembly.assembly_name === assemblyNameSelected)[0];
+                    // e.overMoused = false;
+                    store.state.chart.chart.instance
+                        .series()
+                        .points(p => p.name === assembly.assembly_name && !p.selected)
+                        .options({ color: 'black' });
+                    store.state.chart.chart.instance
+                        .series()
+                        .points(p => p.name === assembly.assembly_name && p.selected)
+                        .options({ color: 'gray' });
                 }
             };
 
