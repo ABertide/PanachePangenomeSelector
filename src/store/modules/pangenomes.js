@@ -4,8 +4,8 @@ const state = {
 
 // getters
 const getters = {
-    value: state => {
-        return state.pangenomes;
+    pangenomesSelected: state => {
+        return state.pangenomes.filter(pangenome => pangenome.selected === true);
     }
 };
 
