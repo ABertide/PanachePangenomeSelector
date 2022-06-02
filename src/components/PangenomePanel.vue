@@ -2,7 +2,7 @@
     <div v-if="pangenomesToTable">
         <h2 class="mb-4">Pangenome Panel</h2>
 
-        !-- file upload -->
+        <!-- file upload -->
         <v-file-input class="mb-5" v-model="pangenomeFile" accept=".csv, .tsv" label="Choose a file or drop it here..." show-size counter @change="onChangeFile"></v-file-input>
 
         <div class="mb-5">
@@ -188,7 +188,7 @@
                 return store.getters['pangenomes/pangenomesSelected'];
             });
 
-            // Each time store change
+            // Each time pangenomes store change
             watch(pangenomesSelectedStored, newPangenome => {
                 // Reset the checkbox in fonction of pangenome stored
                 if (newPangenome[0] !== undefined) {
