@@ -18,7 +18,8 @@
         setup() {
             const store = useStore();
             const chart = ref(null);
-            const name = ref('marker');
+
+            // Chart Initiation
             const options = ref({
                 type: 'marker',
                 height: 500,
@@ -28,7 +29,7 @@
             onMounted(() => {
                 store.dispatch('chart/updateChartAction', chart.value);
             });
-            return { name, options, chart };
+            return { options, chart };
         }
     };
 </script>

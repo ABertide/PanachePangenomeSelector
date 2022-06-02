@@ -1,9 +1,16 @@
 <template>
+    <!-- Pangenome selector Contenor -->
     <div class="Home">
         <h1>Pangenome Selector</h1>
+        <!-- Assemblies Input File -->
         <v-file-input class="mb-5" v-model="assembliesFile" accept=".csv, .tsv" label="Choose a file or drop it here..." show-size counter @change="onFileChange"></v-file-input>
         <v-row>
-            <v-col><PcaCharts /> <AssembliesTable /></v-col>
+            <!-- Chart and Assemblies Table -->
+            <v-col>
+                <PcaCharts />
+                <AssembliesTable />
+            </v-col>
+            <!-- Pangenome Table -->
             <v-col lg="3" md="4">
                 <PangenomePanel />
             </v-col>
@@ -14,193 +21,34 @@
 <script>
     import { defineComponent } from 'vue';
     import { ref } from '@vue/reactivity';
+    import { computed } from '@vue/runtime-core';
+    import { useStore } from 'vuex';
 
     // Components
     import PangenomePanel from '../components/PangenomePanel.vue';
     import AssembliesTable from '../components/AssembliesTable.vue';
     import PcaCharts from '../components/PcaCharts.vue';
-    // import addSeries from '@/mixins/chartFunctions.js';
-    import { useStore } from 'vuex';
 
     export default defineComponent({
         name: 'PangenomeSelection',
 
         components: { AssembliesTable, PangenomePanel, PcaCharts },
         setup() {
+            const store = useStore();
+            // File value
             const assembliesFile = ref([]);
             let fileinput = ref('');
-            const store = useStore();
 
-            const generateColor = () => {
-                let newColor = '#' + ((Math.random() * 0xffffff) << 0).toString(16);
-                return newColor;
-            };
-
+            // Assemblies File upload
             const onFileChange = e => {
+                // Get file by events
                 var files = e.target.files || e.dataTransfer.files;
                 if (!files.length) return;
                 createInput(files[0]);
             };
 
-            const addSeries = newAssemblies => {
-                let assembliesByMetadata = [];
-                let metadatas = [];
-                let chart = store.state.chart.chart;
-                if (newAssemblies !== undefined) {
-                    newAssemblies.forEach(assembly => {
-                        metadatas.push(...assembly[assembly.metadata]);
-                    });
-                    metadatas = [...new Set(metadatas)];
-                    metadatas.forEach(metadata => assembliesByMetadata.push({ metadataName: metadata, assemblies: newAssemblies.filter(assembly => assembly[assembly.metadata].includes(metadata)) }));
-
-                    let series = [];
-                    assembliesByMetadata.forEach(metadata => {
-                        let pointsAdded = [];
-                        metadata.assemblies.forEach(assembly => {
-                            let markerType = 'circle';
-                            let pointLabel = '';
-                            let defaultColor = 'black';
-                            if (assembly.selected) {
-                                defaultColor = 'gray';
-                            }
-                            if (assembly.majore === true) {
-                                markerType = 'square';
-                                pointLabel = assembly.assembly_name;
-                            }
-                            let assemblyTreated = series.map(serie => {
-                                let currentSerie = serie.points.map(point => {
-                                    if (point !== undefined) {
-                                        return point.name;
-                                    }
-                                });
-                                if (currentSerie !== undefined) {
-                                    return currentSerie;
-                                }
-                            });
-                            let PointObj = {
-                                x: assembly.x,
-                                y: assembly.y,
-                                name: assembly.assembly_name,
-                                color: defaultColor,
-                                marker: { type: markerType },
-                                metadata: assembly.color,
-                                label: {
-                                    text: pointLabel, // Automatic alignment can be overwritten:
-                                    align: 'center',
-                                    color: 'black'
-                                },
-                                selected: assembly.selected,
-                                events: {
-                                    mouseOver: function () {
-                                        store.dispatch('assemblies/updateOverMousedStateAction', assembly);
-                                        this.series.currentOptions.color = assembly.color;
-                                        chart.instance
-                                            .series(s => assembly[assembly.metadata].includes(s.name))
-                                            .points()
-                                            .items.forEach(point => {
-                                                chart.instance
-                                                    .series(s => assembly[assembly.metadata].includes(s.name))
-                                                    .points(allPoint => allPoint.name === point.name)
-                                                    .options({ color: point.currentOptions.metadata });
-                                            });
-
-                                        // this.series.points().options({ color: assembly.color });
-                                    },
-                                    mouseOut: function () {
-                                        this.currentOptions.marker.outline.color = 'gray';
-                                        chart.instance
-                                            .series(s => assembly[assembly.metadata].includes(s.name))
-                                            .points()
-                                            .items.forEach(point => {
-                                                if (point.selected) {
-                                                    chart.instance
-                                                        .series(s => assembly[assembly.metadata].includes(s.name))
-                                                        .points(allPoint => allPoint.name === point.name)
-                                                        .options({ color: 'gray' });
-                                                } else {
-                                                    chart.instance
-                                                        .series(s => assembly[assembly.metadata].includes(s.name))
-                                                        .points(allPoint => allPoint.name === point.name)
-                                                        .options({ color: 'black' });
-                                                }
-                                            });
-                                        if (this.series.points(p => p.name === assembly.assembly_name))
-                                            this.series
-                                                .points(p => p.name === assembly.assembly_name)
-                                                .items.forEach(point => {
-                                                    store.dispatch('assemblies/updateNoMoreOverMousedStateAction', assembly);
-                                                    if (point.selected) {
-                                                        this.series.points(allPoint => allPoint.name === point.name).options({ color: 'gray' });
-                                                    } else {
-                                                        this.series.points(allPoint => allPoint.name === point.name).options({ color: 'black' });
-                                                    }
-                                                });
-                                        this.series
-                                            .points(p => p.name !== assembly.assembly_name)
-                                            .items.forEach(point => {
-                                                if (point.selected) {
-                                                    this.series.points(allPoint => allPoint.name === point.name).options({ color: 'gray' });
-                                                } else {
-                                                    this.series.points(allPoint => allPoint.name === point.name).options({ color: 'black' });
-                                                }
-                                            });
-                                        // store.dispatch('updateNoMoreOverMousedStateAction', assembly);
-                                    },
-                                    click: function () {
-                                        this.series
-                                            .points(p => p.name === assembly.assembly_name)
-                                            .items.forEach(point => {
-                                                store.dispatch('assemblies/updateIsNotSelectedStateAction', assembly);
-                                                if (point.selected) {
-                                                    point.series.currentOptions.color = 'black';
-                                                    this.series.points(allPoint => allPoint.name === point.name).options({ color: 'black', selected: assembly.selected });
-                                                    this.userOptions.marker.outline.color = 'white';
-                                                } else {
-                                                    store.dispatch('assemblies/updateIsSelectedStateAction', assembly);
-                                                    point.series.currentOptions.color = 'gray';
-                                                    this.series.points(allPoint => allPoint.name === point.name).options({ color: 'gray', selected: assembly.selected });
-                                                    this.userOptions.marker.outline.color = 'gray';
-                                                }
-                                            });
-                                        this.series
-                                            .points(p => p.name !== assembly.assembly_name)
-                                            .items.forEach(point => {
-                                                if (point.selected) {
-                                                    this.series.currentOptions.color = 'gray';
-                                                    this.series.points(allPoint => allPoint.name === point.name).options({ color: 'gray' });
-                                                } else {
-                                                    this.series.currentOptions.color = 'black';
-                                                    this.series.points(allPoint => allPoint.name === point.name).options({ color: 'black' });
-                                                }
-                                            });
-                                    }
-                                }
-                            };
-
-                            if (!assemblyTreated.flat().includes(assembly.assembly_name)) {
-                                pointsAdded.push(PointObj);
-                            }
-                        });
-                        series.push({
-                            id: metadata.metadataName,
-                            name: metadata.metadataName,
-                            type: 'marker',
-                            pointMarker: 'circle',
-                            defaultPoint: {
-                                marker: { size: 11, outline: { width: 2, color: 'white' } }
-                            },
-                            color: 'black',
-                            points: pointsAdded
-                        });
-                    });
-                    return series;
-                    // return [];
-                } else {
-                    return [];
-                }
-            };
-
             const createInput = file => {
+                // Input reading
                 let promise = new Promise(resolve => {
                     var reader = new FileReader();
                     reader.onload = () => {
@@ -211,7 +59,7 @@
 
                 promise.then(
                     () => {
-                        /* handle a successful result */
+                        // Input Parsing
                         let lines = fileinput.split('\n');
                         let assemblies = lines.map(line => {
                             if (!line.startsWith('id') && line.length !== 0) {
@@ -229,9 +77,11 @@
                                 return assembly;
                             }
                         });
+                        // Filter assemblies badly loaded
                         assemblies = assemblies.filter(assembly => assembly !== undefined);
                         let colors = [];
                         let assembliesObjects = assemblies.map(assembly => {
+                            // Add metadata
                             assembly['color'] = 'black';
                             assembly['metadata'] = 'heterotic_group';
                             assembly['selected'] = false;
@@ -247,15 +97,23 @@
                             }
                             return assembly;
                         });
+                        // Get all heterotic group
                         let heterotic_group = [...new Set(assembliesObjects.map(assembly => String(...assembly.heterotic_group)))];
 
+                        // Get color by hetoric group
                         new Set(heterotic_group.map(() => colors.push(generateColor())));
                         assembliesObjects.map(assembly => {
                             assembly['color'] = colors[heterotic_group.indexOf(assembly[assembly['metadata']][0])];
                         });
+
+                        // Add assemblies to store
                         store.dispatch('assemblies/updateAssembliesAction', assembliesObjects);
-                        const assembliesStored = store.state.assemblies.assemblies;
-                        let series = addSeries(assembliesStored);
+
+                        // Get assemblies stored
+                        const assembliesStored = computed(() => store.state.assemblies.assemblies);
+
+                        // add Assemblies to chart
+                        let series = addSeries(assembliesStored.value);
                         series.forEach(serie => store.state.chart.chart.instance.series.add(serie));
                     },
                     error => {
@@ -264,7 +122,221 @@
                     }
                 );
             };
+
+            // Color Generator
+            const generateColor = () => {
+                let newColor = '#' + ((Math.random() * 0xffffff) << 0).toString(16);
+                return newColor;
+            };
+
+            // Set series for chart
+            const addSeries = newAssemblies => {
+                // Serie is an object with a list of points
+                let assembliesByMetadata = [];
+                let metadatas = [];
+
+                // Chart stored and initiated in PcaChart component
+                let chart = store.state.chart.chart;
+
+                if (newAssemblies !== undefined) {
+                    newAssemblies.forEach(assembly => {
+                        // Get all metadata value (default is Heterotic group value)
+                        metadatas.push(...assembly[assembly.metadata]);
+                    });
+                    // Get Unique value
+                    metadatas = [...new Set(metadatas)];
+
+                    // Ordered assemblies by metadata in Objects
+                    // [
+                    //     {
+                    //      metadataName: metadata_1,
+                    //      assemblies: [assembly_1, ...]
+                    //     }
+                    // ]
+                    metadatas.forEach(metadata => assembliesByMetadata.push({ metadataName: metadata, assemblies: newAssemblies.filter(assembly => assembly[assembly.metadata].includes(metadata)) }));
+
+                    let series = [];
+                    assembliesByMetadata.forEach(metadata => {
+                        // Each metadata (each serie)
+                        let pointsAdded = [];
+                        metadata.assemblies.forEach(assembly => {
+                            // Points setting
+
+                            let markerType = 'circle';
+                            let pointLabel = '';
+                            let defaultColor = 'black';
+                            if (assembly.selected) {
+                                defaultColor = 'gray';
+                            }
+                            if (assembly.majore === true) {
+                                markerType = 'square';
+                                pointLabel = assembly.assembly_name;
+                            }
+                            // Get point if the current assembly is already set in another serie
+                            let assemblyTreated = series.map(serie => {
+                                let currentSerie = serie.points.map(point => {
+                                    if (point !== undefined) {
+                                        return point.name;
+                                    }
+                                });
+                                if (currentSerie !== undefined) {
+                                    return currentSerie;
+                                }
+                            });
+
+                            let PointObj = {
+                                // Point himself
+                                // Point arguments
+                                x: assembly.x,
+                                y: assembly.y,
+                                name: assembly.assembly_name,
+                                color: defaultColor,
+                                marker: { type: markerType },
+                                // Default color
+                                metadata: assembly.color,
+                                label: {
+                                    text: pointLabel,
+                                    align: 'center',
+                                    color: 'black'
+                                },
+                                selected: assembly.selected,
+                                events: {
+                                    // all events related to chart
+                                    // "this" is particular, it don't refered to the website, but the "this" keyword refers to the clicked/hovered/... point object.
+                                    // !!!! function have to be defined in this space not outside like a methods !!!!
+                                    mouseOver: function () {
+                                        // changing hovered state in to store for the current assembly
+                                        store.dispatch('assemblies/updateOverMousedStateAction', assembly);
+
+                                        // Set color for the current point
+                                        this.series.currentOptions.color = assembly.color;
+
+                                        // Set color for all points with the same metadata
+                                        chart.instance
+                                            .series(s => assembly[assembly.metadata].includes(s.name))
+                                            .points()
+                                            .items.forEach(point => {
+                                                chart.instance
+                                                    .series(s => assembly[assembly.metadata].includes(s.name))
+                                                    .points(allPoint => allPoint.name === point.name)
+                                                    .options({ color: point.currentOptions.metadata });
+                                            });
+                                    },
+                                    mouseOut: function () {
+                                        // Redo all colors
+
+                                        this.currentOptions.marker.outline.color = 'gray';
+
+                                        // For all points with the same metadata
+                                        chart.instance
+                                            .series(s => assembly[assembly.metadata].includes(s.name))
+                                            .points()
+                                            .items.forEach(point => {
+                                                if (point.selected) {
+                                                    // Gray if it's selected
+                                                    chart.instance
+                                                        .series(s => assembly[assembly.metadata].includes(s.name))
+                                                        .points(allPoint => allPoint.name === point.name)
+                                                        .options({ color: 'gray' });
+                                                } else {
+                                                    // Else Black
+                                                    chart.instance
+                                                        .series(s => assembly[assembly.metadata].includes(s.name))
+                                                        .points(allPoint => allPoint.name === point.name)
+                                                        .options({ color: 'black' });
+                                                }
+                                            });
+
+                                        if (this.series.points(p => p.name === assembly.assembly_name)) {
+                                            // for the current point only
+                                            this.series
+                                                .points(p => p.name === assembly.assembly_name)
+                                                .items.forEach(point => {
+                                                    store.dispatch('assemblies/updateNoMoreOverMousedStateAction', assembly);
+                                                    if (point.selected) {
+                                                        this.series.points(allPoint => allPoint.name === point.name).options({ color: 'gray' });
+                                                    } else {
+                                                        this.series.points(allPoint => allPoint.name === point.name).options({ color: 'black' });
+                                                    }
+                                                });
+                                        }
+                                        // for all other points
+                                        this.series
+                                            .points(p => p.name !== assembly.assembly_name)
+                                            .items.forEach(point => {
+                                                if (point.selected) {
+                                                    this.series.points(allPoint => allPoint.name === point.name).options({ color: 'gray' });
+                                                } else {
+                                                    this.series.points(allPoint => allPoint.name === point.name).options({ color: 'black' });
+                                                }
+                                            });
+                                    },
+                                    click: function () {
+                                        // On clicked point
+                                        // For the current point
+                                        this.series
+                                            .points(p => p.name === assembly.assembly_name)
+                                            .items.forEach(point => {
+                                                if (point.selected) {
+                                                    store.dispatch('assemblies/updateIsNotSelectedStateAction', assembly);
+                                                    // If it was selected -> unselect this point
+                                                    point.series.currentOptions.color = 'black';
+                                                    this.series.points(allPoint => allPoint.name === point.name).options({ color: 'black', selected: assembly.selected });
+                                                    this.userOptions.marker.outline.color = 'white';
+                                                } else {
+                                                    // If it was unselect -> select
+                                                    store.dispatch('assemblies/updateIsSelectedStateAction', assembly);
+                                                    point.series.currentOptions.color = 'gray';
+                                                    this.series.points(allPoint => allPoint.name === point.name).options({ color: 'gray', selected: assembly.selected });
+                                                    this.userOptions.marker.outline.color = 'gray';
+                                                }
+                                            });
+                                        // For other points
+                                        this.series
+                                            .points(p => p.name !== assembly.assembly_name)
+                                            .items.forEach(point => {
+                                                // Keep colors
+                                                if (point.selected) {
+                                                    this.series.currentOptions.color = 'gray';
+                                                    this.series.points(allPoint => allPoint.name === point.name).options({ color: 'gray' });
+                                                } else {
+                                                    this.series.currentOptions.color = 'black';
+                                                    this.series.points(allPoint => allPoint.name === point.name).options({ color: 'black' });
+                                                }
+                                            });
+                                    }
+                                }
+                            };
+
+                            // Keep the assembly only if it's not treated
+                            if (!assemblyTreated.flat().includes(assembly.assembly_name)) {
+                                pointsAdded.push(PointObj);
+                            }
+                        });
+                        // Add serie
+                        series.push({
+                            id: metadata.metadataName,
+                            name: metadata.metadataName,
+                            type: 'marker',
+                            pointMarker: 'circle',
+                            defaultPoint: {
+                                marker: { size: 11, outline: { width: 2, color: 'white' } }
+                            },
+                            color: 'black',
+                            points: pointsAdded
+                        });
+                    });
+                    // Return series if assemblies is defined
+                    return series;
+                } else {
+                    // else Return empty list
+                    return [];
+                }
+            };
+
             return { assembliesFile, fileinput, onFileChange };
         }
     });
 </script>
+
+<style scoped></style>
