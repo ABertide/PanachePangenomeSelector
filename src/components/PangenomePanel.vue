@@ -74,6 +74,7 @@
             const assemblies = computed(() => {
                 return store.state.assemblies.assemblies;
             });
+
             const assembliesSelected = computed(() => store.getters['assemblies/assembliesSelected']);
 
             // Load pangenomes
@@ -214,6 +215,7 @@
                         store.dispatch('pangenomes/updateIsNotSelectedStateAction', currentClickedPangenome[0]);
                     }
                 }
+                myUnRowHover();
             };
 
             // Interactions with Graph
@@ -246,32 +248,40 @@
                             .series()
                             .points(p => !assemblies_names.includes(p.name) && p.selected === true)
                             .options({ color: '#c95e00' });
+                        // orange
                         store.state.chart.chart.instance
                             .series()
                             .points(p => !assemblies_names.includes(p.name) && p.selected === false)
-                            .options({ color: 'gray' });
+                            .options({ color: '#cad2e0' });
+                        store.state.chart.chart.instance
+                            .series()
+                            .points(p => assemblies_names.includes(p.name) && p.selected === true)
+                            .options({ color: '#29b0ff' });
+                        // blue
+                        store.state.chart.chart.instance
+                            .series()
+                            .points(p => assemblies_names.includes(p.name) && p.selected === false)
+                            .options({ color: 'blue' });
+                        // darkblue
                     } else {
-                        const assembliesSelected = pangenomeSelected.map(pangenome => pangenome.assemblies).flat();
                         store.state.chart.chart.instance
                             .series()
-                            .points(p => assemblies_names.includes(p.name) && assembliesSelected.includes(p.name))
-                            .options({ color: 'black' });
-                        store.state.chart.chart.instance
-                            .series()
-                            .points(p => assemblies_names.includes(p.name) && p.selected === true && !assembliesSelected.includes(p.name))
-                            .options({ color: 'blue' });
-                        store.state.chart.chart.instance
-                            .series()
-                            .points(p => !assemblies_names.includes(p.name) && p.selected === true && assembliesSelected.includes(p.name))
+                            .points(p => !assemblies_names.includes(p.name) && p.selected === true)
                             .options({ color: '#c95e00' });
+                        // orange
                         store.state.chart.chart.instance
                             .series()
-                            .points(p => assemblies_names.includes(p.name) && p.selected === false && !assembliesSelected.includes(p.name))
+                            .points(p => !assemblies_names.includes(p.name) && p.selected === false)
+                            .options({ color: '#cad2e0' });
+                        store.state.chart.chart.instance
+                            .series()
+                            .points(p => assemblies_names.includes(p.name) && p.selected === true)
+                            .options({ color: '#29b0ff' });
+                        // blue
+                        store.state.chart.chart.instance
+                            .series()
+                            .points(p => assemblies_names.includes(p.name) && p.selected === false)
                             .options({ color: 'blue' });
-                        store.state.chart.chart.instance
-                            .series()
-                            .points(p => !assemblies_names.includes(p.name) && p.selected === false && assembliesSelected.includes(p.name))
-                            .options({ color: '#ffda8f' });
                     }
                 }
             };
@@ -283,7 +293,7 @@
                 store.state.chart.chart.instance
                     .series()
                     .points(p => p.selected === true)
-                    .options({ color: 'gray' });
+                    .options({ color: '#c95e00' });
                 if (pangenomeAssembliesSelected.length > 0) {
                     store.state.chart.chart.instance
                         .series()
@@ -293,11 +303,19 @@
                         .series()
                         .points(p => p.selected === false && !pangenomeAssembliesSelected.includes(p.name))
                         .options({ color: '#cad2e0' });
+                    store.state.chart.chart.instance
+                        .series()
+                        .points(p => p.selected === true && pangenomeAssembliesSelected.includes(p.name))
+                        .options({ color: 'black' });
+                    store.state.chart.chart.instance
+                        .series()
+                        .points(p => p.selected === true && !pangenomeAssembliesSelected.includes(p.name))
+                        .options({ color: '#c95e00' });
                 } else {
                     store.state.chart.chart.instance
                         .series()
                         .points(p => p.selected === false)
-                        .options({ color: 'black' });
+                        .options({ color: '#cad2e0' });
                 }
             };
 

@@ -236,6 +236,10 @@
                 return store.getters['assemblies/assembliesSelected'];
             });
 
+            const pangenomesSelectedStored = computed(() => {
+                return store.getters['pangenomes/pangenomesSelected'];
+            });
+
             // Each time assemblies store change
 
             watch(assembliesSelectedStored, newAssemblies => {
@@ -249,26 +253,49 @@
 
             const selectAction = assemblyNameSelected => {
                 const assembly = assemblies.value.filter(assembly => assembly.assembly_name === assemblyNameSelected)[0];
+
                 if (assembly.selected) {
                     store.dispatch('assemblies/updateIsNotSelectedStateAction', assembly);
                     store.state.chart.chart.instance
                         .series()
                         .points(p => p.name === assembly.assembly_name)
                         .options().items[0].userOptions.marker.outline.color = 'white';
-                    store.state.chart.chart.instance
-                        .series()
-                        .points(p => p.name === assembly.assembly_name)
-                        .options({ color: 'black', selected: false });
+                    if (pangenomesSelectedStored.value.length === 0) {
+                        store.state.chart.chart.instance
+                            .series()
+                            .points(p => p.name === assembly.assembly_name)
+                            .options({ color: '#cad2e0', selected: false });
+                    } else {
+                        store.state.chart.chart.instance
+                            .series()
+                            .points(p => p.name === assembly.assembly_name && pangenomesSelectedStored.value[0].assemblies.includes(p.name))
+                            .options({ color: 'black', selected: false });
+                        store.state.chart.chart.instance
+                            .series()
+                            .points(p => p.name === assembly.assembly_name && !pangenomesSelectedStored.value[0].assemblies.includes(p.name))
+                            .options({ color: '#cad2e0', selected: false });
+                    }
                 } else {
                     store.dispatch('assemblies/updateIsSelectedStateAction', assembly);
                     store.state.chart.chart.instance
                         .series()
                         .points(p => p.name === assembly.assembly_name)
                         .options().items[0].userOptions.marker.outline.color = 'gray';
-                    store.state.chart.chart.instance
-                        .series()
-                        .points(p => p.name === assembly.assembly_name)
-                        .options({ color: 'gray', selected: true });
+                    if (pangenomesSelectedStored.value.length === 0) {
+                        store.state.chart.chart.instance
+                            .series()
+                            .points(p => p.name === assembly.assembly_name)
+                            .options({ color: '#c95e00', selected: true });
+                    } else {
+                        store.state.chart.chart.instance
+                            .series()
+                            .points(p => p.name === assembly.assembly_name && pangenomesSelectedStored.value[0].assemblies.includes(p.name))
+                            .options({ color: 'black', selected: true });
+                        store.state.chart.chart.instance
+                            .series()
+                            .points(p => p.name === assembly.assembly_name && !pangenomesSelectedStored.value[0].assemblies.includes(p.name))
+                            .options({ color: '#c95e00', selected: true });
+                    }
                 }
             };
 
@@ -320,18 +347,38 @@
                     // span into line table case
                     outerText = e.target.parentElement.parentElement.outerText;
                 }
-                if (outerText.startsWith('check') && outerText !== 'check') {
-                    const assemblyNameSelected = outerText.split('\t')[2];
-                    const assembly = assemblies.value.filter(assembly => assembly.assembly_name === assemblyNameSelected)[0];
-                    // e.overMoused = false;
-                    store.state.chart.chart.instance
-                        .series()
-                        .points(p => p.name === assembly.assembly_name && !p.selected)
-                        .options({ color: 'black' });
-                    store.state.chart.chart.instance
-                        .series()
-                        .points(p => p.name === assembly.assembly_name && p.selected)
-                        .options({ color: 'gray' });
+                if (pangenomesSelectedStored.value.length === 0) {
+                    if (outerText.startsWith('check') && outerText !== 'check') {
+                        const assemblyNameSelected = outerText.split('\t')[2];
+                        const assembly = assemblies.value.filter(assembly => assembly.assembly_name === assemblyNameSelected)[0];
+                        // e.overMoused = false;
+                        store.state.chart.chart.instance
+                            .series()
+                            .points(p => p.name === assembly.assembly_name && !p.selected)
+                            .options({ color: '#cad2e0' });
+                        store.state.chart.chart.instance
+                            .series()
+                            .points(p => p.name === assembly.assembly_name && p.selected)
+                            .options({ color: '#c95e00' });
+                    }
+                } else {
+                    if (outerText.startsWith('check') && outerText !== 'check') {
+                        const assemblyNameSelected = outerText.split('\t')[2];
+                        const assembly = assemblies.value.filter(assembly => assembly.assembly_name === assemblyNameSelected)[0];
+                        e.overMoused = false;
+                        store.state.chart.chart.instance
+                            .series()
+                            .points(p => p.name === assembly.assembly_name && pangenomesSelectedStored.value[0].assemblies.includes(assembly.assembly_name))
+                            .options({ color: 'black' });
+                        store.state.chart.chart.instance
+                            .series()
+                            .points(p => p.name === assembly.assembly_name && !p.selected && !pangenomesSelectedStored.value[0].assemblies.includes(p.name))
+                            .options({ color: '#cad2e0' });
+                        store.state.chart.chart.instance
+                            .series()
+                            .points(p => p.name === assembly.assembly_name && p.selected && !pangenomesSelectedStored.value[0].assemblies.includes(p.name))
+                            .options({ color: '#c95e00' });
+                    }
                 }
             };
 

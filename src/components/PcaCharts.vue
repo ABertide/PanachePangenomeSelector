@@ -26,9 +26,12 @@
                 legend: { template: '', visible: false },
                 series: []
             });
+
             onMounted(() => {
+                // Save chart when app mounted
                 store.dispatch('chart/updateChartAction', chart.value);
             });
+
             return { options, chart };
         }
     };

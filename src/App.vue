@@ -15,6 +15,7 @@
             </div>
         </v-app-bar>
         <v-main>
+            <!-- Content -->
             <router-view />
         </v-main>
     </v-app>
