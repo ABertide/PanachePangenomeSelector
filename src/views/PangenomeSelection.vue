@@ -227,6 +227,15 @@
                                                     .points(allPoint => allPoint.name === point.name)
                                                     .options({ color: point.currentOptions.metadata });
                                             });
+                                        chart.instance
+                                            .series(s => !assembly[assembly.metadata].includes(s.name))
+                                            .points()
+                                            .items.forEach(point => {
+                                                chart.instance
+                                                    .series(s => !assembly[assembly.metadata].includes(s.name))
+                                                    .points(allPoint => allPoint.name === point.name)
+                                                    .options({ color: '#cad2e0' });
+                                            });
                                     },
                                     mouseOut: function () {
                                         // Redo all colors
@@ -253,6 +262,11 @@
                                                             .options({ color: '#cad2e0' });
                                                     }
                                                 } else {
+                                                    chart.instance
+                                                        .series()
+                                                        .points(allPoint => pangenomesSelectedStored.value[0].assemblies.includes(allPoint.name))
+                                                        .options({ color: 'black' });
+
                                                     if (point.selected) {
                                                         // Gray if it's selected
                                                         chart.instance

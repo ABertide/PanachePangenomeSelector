@@ -264,24 +264,30 @@
                             .options({ color: 'blue' });
                         // darkblue
                     } else {
-                        store.state.chart.chart.instance
-                            .series()
-                            .points(p => !assemblies_names.includes(p.name) && p.selected === true)
-                            .options({ color: '#c95e00' });
-                        // orange
-                        store.state.chart.chart.instance
-                            .series()
-                            .points(p => !assemblies_names.includes(p.name) && p.selected === false)
-                            .options({ color: '#cad2e0' });
-                        store.state.chart.chart.instance
-                            .series()
-                            .points(p => assemblies_names.includes(p.name) && p.selected === true)
-                            .options({ color: '#29b0ff' });
-                        // blue
-                        store.state.chart.chart.instance
-                            .series()
-                            .points(p => assemblies_names.includes(p.name) && p.selected === false)
-                            .options({ color: 'blue' });
+                        if (pangenomeSelected[0].name !== panID) {
+                            store.state.chart.chart.instance
+                                .series()
+                                .points(p => !assemblies_names.includes(p.name) && p.selected === true)
+                                .options({ color: '#c95e00' });
+                            // orange
+                            store.state.chart.chart.instance
+                                .series()
+                                .points(p => !assemblies_names.includes(p.name) && p.selected === false)
+                                .options({ color: '#cad2e0' });
+                            store.state.chart.chart.instance
+                                .series()
+                                .points(p => assemblies_names.includes(p.name) && p.selected === true)
+                                .options({ color: '#29b0ff' });
+                            // blue
+                            // store.state.chart.chart.instance
+                            //     .series()
+                            //     .points(p => assemblies_names.includes(p.name) && p.selected === false)
+                            //     .options({ color: 'blue' });
+                            store.state.chart.chart.instance
+                                .series()
+                                .points(p => assemblies_names.includes(p.name) && p.selected === false && !pangenomeSelected[0].assemblies.includes(p.name))
+                                .options({ color: 'blue' });
+                        }
                     }
                 }
             };
