@@ -3,7 +3,8 @@
         <h2 class="mb-4">Pangenome Panel</h2>
 
         <!-- file upload -->
-        <v-file-input class="mb-5" v-model="pangenomeFile" accept=".csv, .tsv" label="Choose a file or drop it here..." show-size counter @change="onChangeFile"></v-file-input>
+        <!-- <v-file-input class="mb-5" v-model="pangenomeFile" accept=".csv, .tsv" label="Choose a file or drop it here..." show-size counter @change="onChangeFile"></v-file-input> -->
+        <va-file-upload dropzone class="mb-5" v-model="pangenomeFile" file-types=".csv, .tsv" @input="onFileChange" type="single"> </va-file-upload>
 
         <div class="mb-5">
             <h4>Chose Pangenomes</h4>
@@ -16,7 +17,7 @@
             <h4>List of Pangenome</h4>
 
             <!-- Table -->
-            <va-data-table :items="pangenomesToTable" :columns="headers" @mouseover="myRowHover($event)" @mouseout="myUnRowHover($event)">
+            <va-data-table :items="pangenomesToTable" :columns="headers" :hoverable="true" @mouseover="myRowHover($event)" @mouseout="myUnRowHover($event)">
                 <!-- Content -->
                 <template #cell(selected)="data">
                     <va-checkbox v-model="selectedItems" :array-value="data.cells[3].value" @click="selectAction(data.cells[3].value)" />

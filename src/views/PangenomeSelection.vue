@@ -3,7 +3,8 @@
     <div class="Home">
         <h1>Pangenome Selector</h1>
         <!-- Assemblies Input File -->
-        <v-file-input class="mb-5" v-model="assembliesFile" accept=".csv, .tsv" label="Choose a file or drop it here..." show-size counter @change="onFileChange"></v-file-input>
+        <!-- <v-file-input class="mb-5" v-model="assembliesFile" accept=".csv, .tsv" label="Choose a file or drop it here..." show-size counter @change="onFileChange"></v-file-input> -->
+        <va-file-upload dropzone class="mb-5" v-model="assembliesFile" upload-button-text="Upload 2 file" file-types=".csv, .tsv" @input="onFileChange" type="single"> </va-file-upload>
         <v-row>
             <!-- Chart and Assemblies Table -->
             <v-col>
@@ -138,6 +139,7 @@
             // Set series for chart
             const addSeries = newAssemblies => {
                 // Serie is an object with a list of points
+                let lastOvered = undefined;
                 let assembliesByMetadata = [];
                 let metadatas = [];
 
@@ -211,15 +213,17 @@
                                     // "this" is particular, it don't refered to the website, but the "this" keyword refers to the clicked/hovered/... point object.
                                     // !!!! function have to be defined in this space not outside like a methods !!!!
                                     mouseOver: function () {
+                                        console.log('ok');
                                         // changing hovered state in to store for the current assembly
                                         store.dispatch('assemblies/updateOverMousedStateAction', assembly);
 
-                                        // Set color for the current point
                                         this.series.currentOptions.color = assembly.color;
 
                                         // Set color for all points with the same metadata
+                                        lastOvered = this.currentOptions.name;
+
                                         chart.instance
-                                            .series(s => assembly[assembly.metadata].includes(s.name))
+                                            .series()
                                             .points()
                                             .items.forEach(point => {
                                                 chart.instance
@@ -228,7 +232,7 @@
                                                     .options({ color: point.currentOptions.metadata });
                                             });
                                         chart.instance
-                                            .series(s => !assembly[assembly.metadata].includes(s.name))
+                                            .series()
                                             .points()
                                             .items.forEach(point => {
                                                 chart.instance
@@ -236,120 +240,123 @@
                                                     .points(allPoint => allPoint.name === point.name)
                                                     .options({ color: '#cad2e0' });
                                             });
+                                        // Set color for the current point
                                     },
                                     mouseOut: function () {
                                         // Redo all colors
+                                        if (lastOvered === this.currentOptions.name) {
+                                            this.currentOptions.marker.outline.color = 'gray';
 
-                                        this.currentOptions.marker.outline.color = 'gray';
-
-                                        // For all points with the same metadata
-                                        chart.instance
-                                            .series(s => assembly[assembly.metadata].includes(s.name))
-                                            .points()
-                                            .items.forEach(point => {
-                                                if (pangenomesSelectedStored.value.length === 0) {
-                                                    if (point.selected) {
-                                                        // Gray if it's selected
-                                                        chart.instance
-                                                            .series(s => assembly[assembly.metadata].includes(s.name))
-                                                            .points(allPoint => allPoint.name === point.name)
-                                                            .options({ color: '#c95e00' });
-                                                    } else {
-                                                        // Else Black
-                                                        chart.instance
-                                                            .series(s => assembly[assembly.metadata].includes(s.name))
-                                                            .points(allPoint => allPoint.name === point.name)
-                                                            .options({ color: '#cad2e0' });
-                                                    }
-                                                } else {
-                                                    chart.instance
-                                                        .series()
-                                                        .points(allPoint => pangenomesSelectedStored.value[0].assemblies.includes(allPoint.name))
-                                                        .options({ color: 'black' });
-
-                                                    if (point.selected) {
-                                                        // Gray if it's selected
-                                                        chart.instance
-                                                            .series(s => assembly[assembly.metadata].includes(s.name))
-                                                            .points(allPoint => allPoint.name === point.name && !pangenomesSelectedStored.value[0].assemblies.includes(point.name))
-                                                            .options({ color: '#c95e00' });
-                                                        chart.instance
-                                                            .series(s => assembly[assembly.metadata].includes(s.name))
-                                                            .points(allPoint => allPoint.name === point.name && pangenomesSelectedStored.value[0].assemblies.includes(point.name))
-                                                            .options({ color: 'black' });
-                                                    } else {
-                                                        // Else Black
-                                                        chart.instance
-                                                            .series(s => assembly[assembly.metadata].includes(s.name))
-                                                            .points(allPoint => allPoint.name === point.name && !pangenomesSelectedStored.value[0].assemblies.includes(point.name))
-                                                            .options({ color: '#cad2e0' });
-                                                        chart.instance
-                                                            .series(s => assembly[assembly.metadata].includes(s.name))
-                                                            .points(allPoint => allPoint.name === point.name && pangenomesSelectedStored.value[0].assemblies.includes(point.name))
-                                                            .options({ color: 'black' });
-                                                    }
-                                                }
-                                            });
-
-                                        if (this.series.points(p => p.name === assembly.assembly_name)) {
-                                            // for the current point only
-                                            this.series
-                                                .points(p => p.name === assembly.assembly_name)
+                                            // For all points with the same metadata
+                                            chart.instance
+                                                .series()
+                                                .points()
                                                 .items.forEach(point => {
-                                                    store.dispatch('assemblies/updateNoMoreOverMousedStateAction', assembly);
                                                     if (pangenomesSelectedStored.value.length === 0) {
                                                         if (point.selected) {
-                                                            this.series.points(allPoint => allPoint.name === point.name).options({ color: '#c95e00' });
+                                                            // Orange if it's selected
+                                                            chart.instance
+                                                                .series()
+                                                                .points(allPoint => allPoint.name === point.name)
+                                                                .options({ color: '#c95e00' });
                                                         } else {
-                                                            this.series.points(allPoint => allPoint.name === point.name).options({ color: '#cad2e0' });
+                                                            // Else Black
+                                                            chart.instance
+                                                                .series()
+                                                                .points(allPoint => allPoint.name === point.name)
+                                                                .options({ color: '#cad2e0' });
                                                         }
                                                     } else {
+                                                        chart.instance
+                                                            .series()
+                                                            .points(allPoint => pangenomesSelectedStored.value[0].assemblies.includes(allPoint.name))
+                                                            .options({ color: 'black' });
+
                                                         if (point.selected) {
-                                                            this.series
+                                                            // Gray if it's selected
+                                                            chart.instance
+                                                                .series(s => assembly[assembly.metadata].includes(s.name))
                                                                 .points(allPoint => allPoint.name === point.name && !pangenomesSelectedStored.value[0].assemblies.includes(point.name))
                                                                 .options({ color: '#c95e00' });
-                                                            this.series
+                                                            chart.instance
+                                                                .series(s => assembly[assembly.metadata].includes(s.name))
                                                                 .points(allPoint => allPoint.name === point.name && pangenomesSelectedStored.value[0].assemblies.includes(point.name))
                                                                 .options({ color: 'black' });
                                                         } else {
-                                                            this.series
+                                                            // Else Black
+                                                            chart.instance
+                                                                .series(s => assembly[assembly.metadata].includes(s.name))
                                                                 .points(allPoint => allPoint.name === point.name && !pangenomesSelectedStored.value[0].assemblies.includes(point.name))
                                                                 .options({ color: '#cad2e0' });
-                                                            this.series
+                                                            chart.instance
+                                                                .series(s => assembly[assembly.metadata].includes(s.name))
                                                                 .points(allPoint => allPoint.name === point.name && pangenomesSelectedStored.value[0].assemblies.includes(point.name))
                                                                 .options({ color: 'black' });
                                                         }
                                                     }
                                                 });
+
+                                            if (this.series.points(p => p.name === assembly.assembly_name)) {
+                                                // for the current point only
+                                                this.series
+                                                    .points(p => p.name === assembly.assembly_name)
+                                                    .items.forEach(point => {
+                                                        store.dispatch('assemblies/updateNoMoreOverMousedStateAction', assembly);
+                                                        if (pangenomesSelectedStored.value.length === 0) {
+                                                            if (point.selected) {
+                                                                this.series.points(allPoint => allPoint.name === point.name).options({ color: '#c95e00' });
+                                                            } else {
+                                                                this.series.points(allPoint => allPoint.name === point.name).options({ color: '#cad2e0' });
+                                                            }
+                                                        } else {
+                                                            if (point.selected) {
+                                                                this.series
+                                                                    .points(allPoint => allPoint.name === point.name && !pangenomesSelectedStored.value[0].assemblies.includes(point.name))
+                                                                    .options({ color: '#c95e00' });
+                                                                this.series
+                                                                    .points(allPoint => allPoint.name === point.name && pangenomesSelectedStored.value[0].assemblies.includes(point.name))
+                                                                    .options({ color: 'black' });
+                                                            } else {
+                                                                this.series
+                                                                    .points(allPoint => allPoint.name === point.name && !pangenomesSelectedStored.value[0].assemblies.includes(point.name))
+                                                                    .options({ color: '#cad2e0' });
+                                                                this.series
+                                                                    .points(allPoint => allPoint.name === point.name && pangenomesSelectedStored.value[0].assemblies.includes(point.name))
+                                                                    .options({ color: 'black' });
+                                                            }
+                                                        }
+                                                    });
+                                            }
                                         }
+
                                         // for all other points
-                                        this.series
-                                            .points(p => p.name !== assembly.assembly_name)
-                                            .items.forEach(point => {
-                                                if (pangenomesSelectedStored.value.length === 0) {
-                                                    if (point.selected) {
-                                                        this.series.points(allPoint => allPoint.name === point.name).options({ color: '#c95e00' });
-                                                    } else {
-                                                        this.series.points(allPoint => allPoint.name === point.name).options({ color: '#cad2e0' });
-                                                    }
-                                                } else {
-                                                    if (point.selected) {
-                                                        this.series
-                                                            .points(allPoint => allPoint.name === point.name && !pangenomesSelectedStored.value[0].assemblies.includes(point.name))
-                                                            .options({ color: '#c95e00' });
-                                                        this.series
-                                                            .points(allPoint => allPoint.name === point.name && pangenomesSelectedStored.value[0].assemblies.includes(point.name))
-                                                            .options({ color: 'black' });
-                                                    } else {
-                                                        this.series
-                                                            .points(allPoint => allPoint.name === point.name && !pangenomesSelectedStored.value[0].assemblies.includes(point.name))
-                                                            .options({ color: '#cad2e0' });
-                                                        this.series
-                                                            .points(allPoint => allPoint.name === point.name && pangenomesSelectedStored.value[0].assemblies.includes(point.name))
-                                                            .options({ color: 'black' });
-                                                    }
-                                                }
-                                            });
+                                        // this.series
+                                        //     .points(p => p.name !== assembly.assembly_name)
+                                        //     .items.forEach(point => {
+                                        //         if (pangenomesSelectedStored.value.length === 0) {
+                                        //             if (point.selected) {
+                                        //                 this.series.points(allPoint => allPoint.name === point.name).options({ color: '#c95e00' });
+                                        //             } else {
+                                        //                 this.series.points(allPoint => allPoint.name === point.name).options({ color: '#cad2e0' });
+                                        //             }
+                                        //         } else {
+                                        //             if (point.selected) {
+                                        //                 this.series
+                                        //                     .points(allPoint => allPoint.name === point.name && !pangenomesSelectedStored.value[0].assemblies.includes(point.name))
+                                        //                     .options({ color: '#c95e00' });
+                                        //                 this.series
+                                        //                     .points(allPoint => allPoint.name === point.name && pangenomesSelectedStored.value[0].assemblies.includes(point.name))
+                                        //                     .options({ color: 'black' });
+                                        //             } else {
+                                        //                 this.series
+                                        //                     .points(allPoint => allPoint.name === point.name && !pangenomesSelectedStored.value[0].assemblies.includes(point.name))
+                                        //                     .options({ color: '#cad2e0' });
+                                        //                 this.series
+                                        //                     .points(allPoint => allPoint.name === point.name && pangenomesSelectedStored.value[0].assemblies.includes(point.name))
+                                        //                     .options({ color: 'black' });
+                                        //             }
+                                        //         }
+                                        //     });
                                     },
                                     click: function () {
                                         // On clicked point
@@ -481,4 +488,12 @@
     });
 </script>
 
-<style scoped></style>
+<style>
+    div.va-file-upload__field__text {
+        visibility: hidden;
+    }
+    div.va-file-upload__field__text:after {
+        visibility: visible;
+        content: 'Choose a file or drop it here...';
+    }
+</style>
